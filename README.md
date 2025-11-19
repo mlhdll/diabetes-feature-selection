@@ -48,6 +48,4 @@ Bu proje, Pima Indians Diabetes Veri Seti kullanılarak diyabet teşhisinde en e
 *   Pandas & NumPy
 *   Matplotlib & Seaborn
 
-## 📝 Lisans
 
-Bu proje eğitim amaçlı hazırlanmıştır.

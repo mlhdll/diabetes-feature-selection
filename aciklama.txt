@@ -1,0 +1,75 @@
+# Diyabet Özellik Seçimi Projesi - Detaylı Açıklama
+
+Bu belge, projenin amacını, nasıl çalıştığını ve kodların ne işe yaradığını hiç bilmeyen birine anlatır gibi detaylıca açıklar.
+
+---
+
+## BÖLÜM 1: PROJE NEDİR?
+
+### Amaç
+Bu projenin amacı, diyabet (şeker hastalığı) teşhisinde doktorların baktığı birçok değerden (Yaş, Kilo, Kan Şekeri vb.) hangilerinin **en önemli** olduğunu bulmaktır.
+
+### Neden Önemli?
+Bir doktora gittiğinizde sizden 8-10 farklı test isteyebilir. Ancak belki de teşhis koymak için sadece 3 tanesi (örneğin Şeker, BMI ve Yaş) yeterlidir.
+*   **Daha az test:** Hastayı yormaz.
+*   **Daha hızlı sonuç:** Gereksiz verilerle uğraşılmaz.
+*   **Daha yüksek başarı:** Bazen gereksiz veriler (gürültü) teşhisi zorlaştırır. Bunları atınca bilgisayar daha doğru tahmin yapar.
+
+### Kullanılan Yöntemler
+Hangi özelliğin önemli olduğunu bulmak için 3 farklı matematiksel yöntem kullandık:
+1.  **RFE (Recursive Feature Elimination):** "En Zayıf Halkayı Ele" yarışması gibidir. Tüm özelliklerle başlar, en etkisiz olanı atar, geriye kalanlarla tekrar dener. İstediğimiz sayıya (k) inene kadar devam eder.
+2.  **Mutual Information (Karşılıklı Bilgi):** İstatistiksel bir yöntemdir. "Ben bu kişinin kan şekerini bilirsem, diyabet olup olmadığını ne kadar iyi tahmin edebilirim?" sorusunun cevabını arar.
+3.  **LASSO:** Bir ceza yöntemidir. Modele der ki: "Hata yaparsan ceza alırsın, ama çok fazla özellik kullanırsan da ceza alırsın." Model de ceza almamak için gereksiz özelliklerin katsayısını SIFIR yapar.
+
+---
+
+## BÖLÜM 2: KODLARIN DETAYLI AÇIKLAMASI
+
+Proje 4 ana dosyadan oluşur. Her biri bir görevi yerine getirir.
+
+### 1. `data_manager.py` (Veri Yöneticisi)
+Bu dosya, ham veriyi (Excel/CSV) alıp temizleyip kullanıma hazır hale getirir.
+
+*   **`load_data` Fonksiyonu:**
+    *   `pd.read_csv`: Dosyayı okur.
+    *   `replace(0, np.nan)`: Veri setinde Glikoz, Tansiyon gibi değerler "0" olamaz. Eğer "0" yazılmışsa bu eksik veridir. Bunları "Yok" (NaN) olarak işaretleriz.
+    *   `fillna(df.mean())`: "Yok" olan verilerin yerine, o sütunun ortalamasını yazarız. Böylece veri kaybı olmaz.
+*   **`preprocess_data` Fonksiyonu:**
+    *   Veriyi ikiye böler: **X** (Girdiler: Yaş, Kilo vb.) ve **y** (Çıktı: Hasta mı değil mi?).
+    *   `StandardScaler`: Verileri standartlaştırır. Örneğin Yaş (30-80) ile İnsülin (0-800) çok farklı aralıklardadır. Makine kafası karışmasın diye hepsini benzer bir aralığa (örneğin -1 ile +1 arasına) sıkıştırır.
+
+### 2. `feature_selector.py` (Özellik Seçici)
+Burası projenin beynidir. Hangi özelliklerin seçileceğine karar verir.
+
+*   **`select_features` Fonksiyonu:**
+    *   Kullanıcıdan yöntemi (`method`) ve kaç özellik istediğini (`k`) alır.
+    *   **Eğer RFE seçilirse:** Lojistik Regresyon modelini hakem olarak kullanır ve en zayıf özellikleri tek tek eler.
+    *   **Eğer Mutual Info seçilirse:** Her özelliğin diyabetle olan istatistiksel bağına bakar.
+    *   **Puanlama (Scoring):** Seçilen özelliklerin ne kadar önemli olduğunu hesaplar ve bunları **YÜZDE (%)** cinsine çevirir. Böylece grafikte "Glikoz %40 etkili" diyebiliriz.
+
+### 3. `model_trainer.py` (Model Eğitici)
+Seçilen özelliklerle yapay zekayı eğiten kısımdır.
+
+*   **`train_evaluate` Fonksiyonu:**
+    *   `train_test_split`: Veriyi %80 eğitim, %20 test olarak böler. (Okulda ders çalışıp sonra sınav olmak gibi).
+    *   Modeli seçer (Lojistik Regresyon veya Rastgele Orman).
+    *   `model.fit`: Modeli eğitim verisiyle çalıştırır (Ders çalıştırır).
+    *   `model.predict`: Test verisiyle sınav yapar.
+    *   Sonuç olarak **Doğruluk (Accuracy)** ve **F1 Skoru** (Başarı notu) döndürür.
+
+### 4. `app.py` (Uygulama Arayüzü)
+Kullanıcının gördüğü ekranı (Web Sitesi) oluşturan koddur. `Streamlit` kütüphanesini kullanır.
+
+*   **`st.sidebar`:** Sol taraftaki menüyü oluşturur. Buradan yöntem ve model seçilir.
+*   **`st.header`, `st.write`:** Başlıkları ve yazıları ekrana basar.
+*   **Grafikler:** `matplotlib` ve `seaborn` kullanarak özelliklerin önemini gösteren çubuk grafikleri çizer.
+*   **Canlı Tahmin:** Kullanıcıdan kendi değerlerini girmesini ister (`st.number_input`). Sonra bu değerleri alıp, arka planda eğittiği modele sorar: "Bu kişi diyabet mi?". Modelin cevabını ekrana yazar.
+
+---
+
+## ÖZET
+1.  **Veri Yüklenir** (`data_manager`)
+2.  Kullanıcı bir **Yöntem Seçer** (Arayüz).
+3.  Sistem **En İyi Özellikleri Bulur** (`feature_selector`).
+4.  Sistem bu özelliklerle **Modeli Eğitir** (`model_trainer`).
+5.  Sonuçlar ve Grafikler **Ekrana Basılır** (`app.py`).

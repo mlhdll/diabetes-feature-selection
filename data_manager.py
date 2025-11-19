@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-def load_data(filepath='diabetes.csv'):
+def load_data(filepath='data/diabetes.csv'):
     """
     Diyabet veri setini yükler ve temel ön işlemeyi gerçekleştirir.
     """

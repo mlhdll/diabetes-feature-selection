@@ -20,7 +20,7 @@ Bu proje, Pima Indians Diabetes Veri Seti kullanılarak diyabet teşhisinde en e
 *   `data_manager.py`: Veri yükleme ve ön işleme işlemleri.
 *   `feature_selector.py`: Özellik seçimi algoritmaları.
 *   `model_trainer.py`: Model eğitimi ve değerlendirmesi.
-*   `diabetes.csv`: Kullanılan veri seti.
+*   `diabetes.csv`: Kullanılan veri seti (`data/` klasörü içinde).
 
 ## 🛠️ Kurulum
 

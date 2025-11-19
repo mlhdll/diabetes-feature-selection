@@ -22,3 +22,6 @@ venv.bak/
 # OS
 .DS_Store
 Thumbs.db
+
+# Private documentation
+aciklama.txt
